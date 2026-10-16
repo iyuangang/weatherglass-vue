@@ -1,0 +1,5 @@
+.reference/
+.artifacts/
+node_modules/
+.openai/.runtime/
+*.log
