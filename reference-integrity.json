@@ -5,11 +5,12 @@
   "original_script_sha256": "668ef1d0b161da3b95d81b6631a9e5485c7e89cff3985f6169bfbe730c979e23",
   "engine": {
     "path": "src/engine/reference-engine.js",
-    "sha256": "b5e2afb9b657a491631746170e9c7e1a5789cb7cfd7533fa6fcf102b5894bf8c",
+    "sha256": "67f4b6be318dd5471c4e17e6e2a1259913daf999865fdc289ff72ee2a082ca3f",
     "adaptations": [
       "Explicit scene creation and destruction for Vue lifecycle",
       "Original imperative HUD replaced by Vue single-file components",
-      "Scoped event listeners and frame subscriptions"
+      "Scoped event listeners and frame subscriptions",
+      "Exposes the celestial sphere for geographic sun and moon placement"
     ]
   },
   "styles": {
@@ -17,5 +18,9 @@
     "sha256": "8603f398a47008face7ca67565a3234314ad6cb22653d9b57d9209296e030bf2",
     "matches_original": true
   },
-  "rendering": "Original procedural geometry, shaders, simulation, pointer tools and audio are retained."
+  "rendering": "Original procedural geometry, shaders, simulation, pointer tools and audio are retained.",
+  "reality_driver": {
+    "path": "src/engine/realityDriver.js",
+    "description": "Optional real weather, local calendar and astronomical position/phase adapter; manual simulation remains available."
+  }
 }

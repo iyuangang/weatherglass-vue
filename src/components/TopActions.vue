@@ -16,11 +16,13 @@ function flashButton(name) {
   }, 500);
 }
 function clearSkies() {
+  game.pauseReality();
   game.api.value.ctx.modules.clouds?.clear?.();
   game.play("whoosh", { volume: 0.25 });
   flashButton("clear");
 }
 function reset() {
+  game.pauseReality();
   const ctx = game.api.value.ctx;
   game.api.value.scenario("calm");
   ctx.fields.clear?.();

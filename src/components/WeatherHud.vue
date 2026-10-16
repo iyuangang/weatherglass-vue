@@ -7,6 +7,7 @@ import SeasonDial from "./SeasonDial.vue";
 import TemperatureControl from "./TemperatureControl.vue";
 import CoachTips from "./CoachTips.vue";
 import UiIcon from "./UiIcon.js";
+import RealWorldPanel from "./RealWorldPanel.vue";
 
 const game = useScene();
 const { compact, drawerOpen, hidden, view, toasts } = game;
@@ -27,14 +28,19 @@ const shieldEvents = Object.fromEntries(
 
 <template>
   <div
-    class="wg-hud"
-    :class="{ 'is-compact': compact, 'is-drawer-open': drawerOpen }"
+    class="wg-hud has-reality"
+    :class="{
+      'is-compact': compact,
+      'is-drawer-open': drawerOpen,
+      'is-real-open': game.live.state.panelOpen,
+    }"
     v-on="shieldEvents"
     @contextmenu.prevent
     @dragstart.prevent
     @selectstart.prevent
   >
     <TopActions />
+    <RealWorldPanel />
     <div class="wg-bottom">
       <ToolBar />
       <button

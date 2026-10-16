@@ -1,4 +1,7 @@
 import { inject, onScopeDispose, reactive, ref, shallowRef, watch } from "vue";
+import { useRealWorld } from "./useRealWorld.js";
+import { createRealityDriver } from "../engine/realityDriver.js";
+import { isSnowCode, weatherLabel } from "../services/weatherApi.js";
 import {
   conditionLabel,
   formatTemperature,
@@ -17,6 +20,8 @@ export function useWeatherglass() {
   const drawerOpen = ref(false);
   const hidden = ref(false);
   const fullscreen = ref(false);
+  const live = useRealWorld();
+  let realityDriver;
   const view = reactive({
     ready: false,
     error: "",
@@ -67,22 +72,40 @@ export function useWeatherglass() {
   function sync(ctx = api.value?.ctx) {
     if (!ctx) return;
     const world = ctx.world;
+    const actual = live.state.enabled ? live.state.weather : null;
     Object.assign(view, {
       tool: ctx.input.tool,
       soundOn: ctx.audio?.muted === false,
       playing: !!world.dayCycle,
-      clock: formatTime(world.timeOfDay),
-      temperature: formatTemperature(world.seaLevelTemp ?? 10),
+      clock: live.state.enabled
+        ? live.state.sky?.clock.clock.slice(0, 5) || "--:--"
+        : formatTime(world.timeOfDay),
+      temperature: actual
+        ? formatTemperature(actual.temperature)
+        : live.state.enabled
+          ? "—"
+          : formatTemperature(world.seaLevelTemp ?? 10),
       offset: Math.round(world.tempOffset || 0),
-      condition: conditionLabel(world),
-      humidity: `${Math.round((world.humidity || 0) * 100)}%`,
-      wind: windLabel(world.windEnergy || 0),
-      precipitation: precipitationLabel(
-        world.rainfall || 0,
-        world.snowfall || 0,
-      ),
-      snowing: world.snowfall > world.rainfall && world.snowfall > 0.04,
-      wet: world.rainfall + world.snowfall >= 0.04,
+      condition: actual
+        ? weatherLabel(actual.code)
+        : live.state.enabled
+          ? live.state.phase === "error"
+            ? "天气暂不可用"
+            : "正在同步天气"
+          : conditionLabel(world),
+      humidity: `${Math.round((actual?.humidity ?? world.humidity ?? 0) * 100)}%`,
+      wind: actual
+        ? `${actual.windSpeed.toFixed(1)} m/s`
+        : windLabel(world.windEnergy || 0),
+      precipitation: actual
+        ? `${actual.precipitation.toFixed(1)} mm`
+        : precipitationLabel(world.rainfall || 0, world.snowfall || 0),
+      snowing: actual
+        ? isSnowCode(actual.code) && actual.precipitation > 0
+        : world.snowfall > world.rainfall && world.snowfall > 0.04,
+      wet: actual
+        ? actual.precipitation > 0
+        : world.rainfall + world.snowfall >= 0.04,
     });
   }
   async function mount(canvas) {
@@ -94,6 +117,13 @@ export function useWeatherglass() {
           view.ready = true;
         },
         onFrame(delta, ctx) {
+          if (
+            live.state.enabled &&
+            ctx.input.active &&
+            ctx.input.pointer.down &&
+            ["cloud", "fog", "wind"].includes(ctx.input.tool)
+          )
+            pauseReality();
           for (const callback of frames) callback(delta, ctx);
           if (performance.now() - lastSync >= 100) {
             lastSync = performance.now();
@@ -101,6 +131,9 @@ export function useWeatherglass() {
           }
         },
       });
+      realityDriver = createRealityDriver(api.value);
+      realityDriver.setSnapshot(live.state.sky, live.state.weather);
+      realityDriver.setEnabled(live.state.enabled);
       sync();
       setHidden(api.value.ctx.params.get("ui") === "0");
     } catch (error) {
@@ -173,12 +206,36 @@ export function useWeatherglass() {
     }
   }
   function markUse(name) {
+    if (["time", "season", "temp"].includes(name)) pauseReality();
     uses.set(name, performance.now());
   }
   function usedRecently(name, duration) {
     return performance.now() - (uses.get(name) ?? -1e9) < duration;
   }
   onEvent("tool", () => sync());
+  function pauseReality() {
+    if (!live.state.enabled) return;
+    live.pause();
+    toast("已切换为手动探索，点击天气栏可恢复实时联动", 3200, {
+      icon: "climate",
+    });
+  }
+  onEvent("sky:grab", pauseReality);
+  onEvent("cloud:grab", pauseReality);
+  onEvent("wind:start", pauseReality);
+  onEvent("cloud:spawn", () => {
+    if (!realityDriver?.applying && api.value?.ctx.input.tool === "cloud")
+      pauseReality();
+  });
+  watch(
+    [() => live.state.sky, () => live.state.weather, () => live.state.enabled],
+    () => {
+      realityDriver?.setSnapshot(live.state.sky, live.state.weather);
+      realityDriver?.setEnabled(live.state.enabled);
+      sync();
+    },
+    { flush: "sync" },
+  );
   onEvent("hud:hint", (hint) => {
     const text = String(hint?.text || "").trim();
     if (!text || usedRecently(`hint:${text}`, 30000)) return;
@@ -196,7 +253,8 @@ export function useWeatherglass() {
       return;
     if (key?.toLowerCase() === "u") setHidden(!hidden.value);
     else if (key === "Escape") {
-      if (drawerOpen.value) setDrawer(false);
+      if (live.state.panelOpen) live.state.panelOpen = false;
+      else if (drawerOpen.value) setDrawer(false);
       else if (hidden.value) setHidden(false);
     }
   });
@@ -221,10 +279,13 @@ export function useWeatherglass() {
     document.removeEventListener("webkitfullscreenchange", updateFullscreen);
     for (const timer of timers) clearTimeout(timer);
     frames.clear();
+    realityDriver?.dispose();
     api.value?.destroy();
   });
   return {
     api,
+    live,
+    pauseReality,
     view,
     compact,
     drawerOpen,

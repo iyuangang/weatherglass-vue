@@ -16,6 +16,7 @@
     "format": "prettier --write src --ignore-path .prettierignore"
   },
   "dependencies": {
+    "suncalc": "^2.1.1",
     "vue": "3.5.44"
   },
   "devDependencies": {
