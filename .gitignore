@@ -3,3 +3,4 @@
 node_modules/
 .openai/.runtime/
 *.log
+dist/

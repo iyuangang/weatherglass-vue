@@ -3,10 +3,24 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A faithful, standalone recreation of the supplied Weatherglass artifact.",
+  "description": "Vue 3 interactive weather terrarium, ready for GitHub Pages.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
-    "dev": "node server.mjs",
-    "start": "node server.mjs",
-    "check": "node --check dist/app.js && node --check server.mjs"
+    "dev": "vite --host 127.0.0.1 --port 4173",
+    "start": "npm run dev",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "check": "node --test tests/*.test.mjs",
+    "format": "prettier --write src --ignore-path .prettierignore"
+  },
+  "dependencies": {
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.10",
+    "prettier": "3.9.10",
+    "vite": "8.3.4"
   }
 }

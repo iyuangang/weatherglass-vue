@@ -2,19 +2,20 @@
   "reference_url": "https://claude.ai/artifact/3bhygX763cPdpcHQYmfrPk",
   "title": "Weatherglass",
   "retrieved_on": "2026-10-16",
-  "script": {
-    "path": "dist/app.js",
-    "sha256": "668ef1d0b161da3b95d81b6631a9e5485c7e89cff3985f6169bfbe730c979e23",
-    "matches_reference": true
-  },
-  "styles": {
-    "path": "dist/styles.css",
-    "sha256": "8603f398a47008face7ca67565a3234314ad6cb22653d9b57d9209296e030bf2",
-    "original_blocks": [
-      "7f2d8f9c922313c145607f85caf33dcd2bc4a413e061efc8306759f9cedb45d1",
-      "203e4a027af680b79512889743241919e72ceb8b9e1af3532b4ce657e160499c",
-      "c9145da94c824b1185a2e9f23b1bc47fc1fc4af9a183035155d1d031e1dd2ebc"
+  "original_script_sha256": "668ef1d0b161da3b95d81b6631a9e5485c7e89cff3985f6169bfbe730c979e23",
+  "engine": {
+    "path": "src/engine/reference-engine.js",
+    "sha256": "b5e2afb9b657a491631746170e9c7e1a5789cb7cfd7533fa6fcf102b5894bf8c",
+    "adaptations": [
+      "Explicit scene creation and destruction for Vue lifecycle",
+      "Original imperative HUD replaced by Vue single-file components",
+      "Scoped event listeners and frame subscriptions"
     ]
   },
-  "transformation": "Removed Claude frame runtime. Extracted scene module and original style blocks without changes. Moved document metadata to head."
+  "styles": {
+    "path": "src/styles/original.css",
+    "sha256": "8603f398a47008face7ca67565a3234314ad6cb22653d9b57d9209296e030bf2",
+    "matches_original": true
+  },
+  "rendering": "Original procedural geometry, shaders, simulation, pointer tools and audio are retained."
 }
